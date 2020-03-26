@@ -18,35 +18,37 @@ def cycle_neighbours(i):
     else:
         return i
 
-def get_neighbours(i, j):
+def get_neighbours(i, j, field):
     global board
     neighbours = [[i+1, j], [i-1, j], [i, j+1], [i, j-1], [i+1, j+1], [i-1, j+1], [i+1, j-1], [i-1, j+1]]
-    cn= []
+    cn = []
     #cycle 
     for coordinates in neighbours:
         cc = list(map(cycle_neighbours, coordinates)) # map on list
         cn.append(cc)
     values = []
     for coordinates in cn:
-        values.append(board.field[coordinates[0]][coordinates[1]]) 
+        values.append(field[coordinates[0]][coordinates[1]]) 
     return values
 
 def game_thread(playing):
     global board, field_q
-    
+
     field = deepcopy(board.field)
     if not field_q.empty():
         field_q = Queue()
 
-    while playing:
+    while playing():
         #print("New Frame")
         new_field = deepcopy(field)
         for i in range(R_C):
             for j in range(R_C):
 
-                n = get_neighbours(i, j)
+                n = get_neighbours(i, j, field)
                 alive = n.count(1)
                 cell = field[i][j]
+
+                #Rules
                 if cell == 1: # cell is alive
                     if alive < 2 or alive > 3:
                         new_field[i][j] = 0
@@ -55,10 +57,10 @@ def game_thread(playing):
                     if alive == 3:
                         new_field[i][j] = 1
                         break
+
         field = new_field
         field_q.put(new_field)
-        time.sleep(0.5)
-        
+        time.sleep(0.5)        
 
 def all_dead():
     global board
