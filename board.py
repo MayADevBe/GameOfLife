@@ -15,12 +15,13 @@ class Board:
     def draw(self):
         if self.field == []:
             self.create_field()
-
+        self.platform.delete("all")
         #draw field 
         for i in range(self.r_c):
             for j in range(self.r_c):
                 if self.field[i][j] == 0:
-                    self.platform.create_rectangle(i*self.width, j*self.width, (i+1)*self.width, (j+1)*self.width, fill="white")
+                    #self.platform.create_rectangle(i*self.width, j*self.width, (i+1)*self.width, (j+1)*self.width, fill="white")
+                    pass
                 else:
                     self.platform.create_rectangle(i*self.width, j*self.width, (i+1)*self.width, (j+1)*self.width, fill="black")       
 
