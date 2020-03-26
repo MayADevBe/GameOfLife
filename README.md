@@ -1,2 +1,2 @@
 # GameOfLife
- GameOfLife
+ Game of Life
