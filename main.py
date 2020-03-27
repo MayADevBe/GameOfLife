@@ -8,59 +8,53 @@ from queue import Queue
 R_C = 20
 W_H = 20
 playing = False
-field_q = Queue()
 
 def cycle_neighbours(i):
     if i >= R_C:
         return 0
     elif i < 0:
-        return R_C -1
+        return R_C-1
     else:
         return i
 
-def get_neighbours(i, j, field):
+def get_neighbours(i, j):
     global board
-    neighbours = [[i+1, j], [i-1, j], [i, j+1], [i, j-1], [i+1, j+1], [i-1, j+1], [i+1, j-1], [i-1, j+1]]
+    neighbours = [[i+1, j], [i-1, j], [i, j+1], [i, j-1], [i+1, j+1], [i-1, j+1], [i+1, j-1], [i-1, j-1]]
     cn = []
     #cycle 
     for coordinates in neighbours:
-        cc = list(map(cycle_neighbours, coordinates)) # map on list
-        cn.append(cc)
+        coordinates = list(map(cycle_neighbours, coordinates)) # map on list
+        cn.append(coordinates)
+
     values = []
-    for coordinates in cn:
-        values.append(field[coordinates[0]][coordinates[1]]) 
+    for coord in cn:
+        values.append(board.field[coord[0]][coord[1]]) 
     return values
 
-def game_thread(playing):
-    global board, field_q
+def next_frame():
+    global board
 
-    field = deepcopy(board.field)
-    if not field_q.empty():
-        field_q = Queue()
+    new_field = deepcopy(board.field)
+    for i in range(R_C):
+        for j in range(R_C):
 
-    while playing():
-        #print("New Frame")
-        new_field = deepcopy(field)
-        for i in range(R_C):
-            for j in range(R_C):
+            cell = board.field[i][j]
+            n = get_neighbours(i, j)
+            alive = n.count(1)
 
-                n = get_neighbours(i, j, field)
-                alive = n.count(1)
-                cell = field[i][j]
+            #Rules
+            if cell == 1: # cell is alive
+                if alive < 2 or alive > 3:
+                    new_field[i][j] = 0
+                else:
+                    new_field[i][j] = 1
+            elif cell == 0: # cell is dead
+                if alive == 3:
+                    new_field[i][j] = 1
+                else:
+                    new_field[i][j] = 0
 
-                #Rules
-                if cell == 1: # cell is alive
-                    if alive < 2 or alive > 3:
-                        new_field[i][j] = 0
-                        break
-                elif cell == 0: # cell is dead
-                    if alive == 3:
-                        new_field[i][j] = 1
-                        break
-
-        field = new_field
-        field_q.put(new_field)
-        time.sleep(0.5)        
+    board.field = new_field
 
 def all_dead():
     global board
@@ -71,33 +65,27 @@ def all_dead():
     return True
 
 def play_game(event=None):
-    global playing, t, field_q
-
+    global playing
     if playing == False:
         print("Starting Game")
         playing = True
-        t = threading.Thread(target=game_thread, args =(lambda : playing, ))
-        t.daemon = True
-        t.start()
         while playing:
-            if not field_q.empty():
-                board.field = field_q.get()
-                board.draw()
-                board.platform.update()
-                #print("Draw new Frame")
+            next_frame()
+            board.draw()
+            board.platform.update()
+            time.sleep(0.1)
             if all_dead():
                 playing = False
                 board.draw()
                 board.platform.update()
                 print("All cells dead")
                 return
-            time.sleep(0.01)
     else:
         print("Stoping game")
         playing = False
 
 def set_start(event):
-    global board, playing, field_q
+    global board, playing
     if not playing:
         x = floor(event.x/W_H)
         y = floor(event.y/W_H)
@@ -113,4 +101,5 @@ board.draw()
 board.platform.bind("<Button-1>", set_start)
 board.platform.bind("<Return>", play_game)
 board.platform.focus_set()
+
 board.start()
