@@ -1,7 +1,7 @@
 from board import Board
 import time
 from math import floor
-import threading
+import random
 from copy import deepcopy
 from queue import Queue
 
@@ -56,6 +56,20 @@ def next_frame():
 
     board.field = new_field
 
+def random_seed():
+    global R_C, board
+
+    p = 0.25 #[0, 1] 0 = no cells alive, 1 = all cells alive 
+
+    for i in range(R_C):
+        for j in range(R_C):
+            if random.random() <= p:
+                board.field[i][j] = 1
+
+    board.draw()
+    board.platform.update()
+    time.sleep(0.1)
+
 def all_dead():
     global board
     for i in range(R_C):
@@ -67,6 +81,9 @@ def all_dead():
 def play_game(event=None):
     global playing
     if playing == False:
+        if all_dead():
+            print("Random Seed")
+            random_seed()
         print("Starting Game")
         playing = True
         while playing:
